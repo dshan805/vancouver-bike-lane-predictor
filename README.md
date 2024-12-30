@@ -1,5 +1,7 @@
 # Vancouver Bike Lane Usage Predictor
 
+Check out the deployed Streamlit application: [Vancouver Bike Lane Predictor App](https://dshan805-vancouver-bike-lane-predictor-app-8lddat.streamlit.app/)
+
 This project predicts bike lane usage in Vancouver, focusing on the impact of weather conditions. Using a machine learning model (Generative Additive Model), it forecasts daily bike lane activity based on weather data to support infrastructure planning and assess the year-round viability of reallocating vehicle lanes for bike lanes in a city with high precipitation.
 
 ## Features
