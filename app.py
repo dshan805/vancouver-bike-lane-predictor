@@ -4,7 +4,7 @@ import altair as alt
 import joblib
 import sys
 import os
-import numpy as np 
+import numpy as np
 
 np.int = int
 
@@ -26,20 +26,20 @@ def load_data():
 
 bike_weather_melt = load_data()
 
-# Layout adjustments
-st.header("Filters and Predictions")
-
+# Create layout columns
 col1, col2 = st.columns([1, 2])
 
 with col1:
-    st.subheader("Filter Options")
+    st.subheader("Filter Options and Prediction Inputs")
+
+    # Filter for bike lane selection
     selected_bikelane = st.selectbox(
         "Select a Bike Lane:",
         options=bike_weather_melt['bikelane'].unique(),
         index=0
     )
 
-    st.subheader("Prediction Inputs")
+    # Prediction inputs
     mean_temp = st.number_input("Mean Temperature (°C):", value=15.0)
     total_precip = st.number_input("Total Precipitation (mm):", value=0.0)
     total_snow = st.number_input("Total Snow (cm):", value=0.0)
@@ -47,6 +47,7 @@ with col1:
 
     cool_deg_days = mean_temp - 18  # Calculate Cool Degree Days
 
+    # Prediction button
     if st.button("Predict"):
         try:
             # Create dummy variables and interaction terms for the prediction
@@ -66,12 +67,14 @@ with col1:
                 input_data[f'MeanTemp_{day_col}'] = input_data['Mean Temp (°C)'] * input_data[day_col]
 
             # Align columns with training data
-            feature_order = ["Mean Temp (°C)", "Total Precip (mm)", "Total Snow (cm)", "Cool Deg Days (°C)",
-                             "day_of_week_Monday", "day_of_week_Saturday", "day_of_week_Sunday",
-                             "day_of_week_Thursday", "day_of_week_Tuesday", "day_of_week_Wednesday",
-                             "MeanTemp_day_of_week_Monday", "MeanTemp_day_of_week_Saturday",
-                             "MeanTemp_day_of_week_Sunday", "MeanTemp_day_of_week_Thursday",
-                             "MeanTemp_day_of_week_Tuesday", "MeanTemp_day_of_week_Wednesday"]
+            feature_order = [
+                "Mean Temp (°C)", "Total Precip (mm)", "Total Snow (cm)", "Cool Deg Days (°C)",
+                "day_of_week_Tuesday", "day_of_week_Wednesday", "day_of_week_Thursday",
+                "day_of_week_Friday", "day_of_week_Saturday", "day_of_week_Sunday",
+                "MeanTemp_day_of_week_Tuesday", "MeanTemp_day_of_week_Wednesday",
+                "MeanTemp_day_of_week_Thursday", "MeanTemp_day_of_week_Friday",
+                "MeanTemp_day_of_week_Saturday", "MeanTemp_day_of_week_Sunday"
+            ]
 
             input_data = input_data.reindex(columns=feature_order, fill_value=0)
 
@@ -120,11 +123,62 @@ with col1:
             st.altair_chart(scatter_tp_bl_updated & scatter_mt_bl_updated)
 
         except Exception as e:
-            st.error(f"Error in prediction: {e}")
+            st.error(f"Error in prediction or visualization: {e}")
 
 with col2:
-    # Section 1: Summary Visualization
-    st.subheader("Summary View")
+    st.subheader("Summary View and Visualizations")
+
+    # Model Performance (Actual vs Predicted)
+    try:
+        # Load pre-saved X_test and y_test for the selected bike lane
+        X_test_path = f"models/{selected_bikelane}_X_test.pkl"
+        y_test_path = f"models/{selected_bikelane}_y_test.pkl"
+
+        X_test = pd.read_pickle(X_test_path)
+        y_test = pd.read_pickle(y_test_path)
+
+        # Load the model
+        model_path = f"models/{selected_bikelane}_gam_model.pkl"
+        with open(model_path, "rb") as model_file:
+            gam_model = joblib.load(model_file)
+
+        # Predict using the loaded model
+        y_predicted = gam_model.predict(X_test.to_numpy())
+
+        # Create Actual vs Predicted DataFrame
+        actual_vs_predicted = pd.DataFrame({
+            "Actual": y_test,
+            "Predicted": y_predicted
+        })
+
+        # Create scatter plot for Actual vs Predicted
+        scatter_actual_vs_predicted = alt.Chart(actual_vs_predicted).mark_point().encode(
+            x="Actual:Q",
+            y="Predicted:Q",
+            tooltip=["Actual", "Predicted"]
+        )
+
+        # Create line of best fit (identity line)
+        line_of_best_fit = alt.Chart(pd.DataFrame({
+            "Actual": [actual_vs_predicted["Actual"].min(), actual_vs_predicted["Actual"].max()],
+            "Predicted": [actual_vs_predicted["Actual"].min(), actual_vs_predicted["Actual"].max()]
+        })).mark_line(color="red", strokeDash=[5, 5]).encode(
+            x="Actual:Q",
+            y="Predicted:Q"
+        )
+
+        combined_actual_vs_predicted = (scatter_actual_vs_predicted + line_of_best_fit).properties(
+            width=1000,
+            height=500,
+            title="Actual vs Predicted with Line of Best Fit"
+        )
+
+        st.altair_chart(combined_actual_vs_predicted)
+
+    except Exception as e:
+        st.error(f"Error in Model Performance visualization: {e}")
+
+    # Additional Visualizations
     selection = alt.selection(type="multi", fields=["year/month"])
 
     bike_usage_by_month = alt.Chart(bike_weather_melt).mark_bar().encode(
@@ -161,37 +215,3 @@ with col2:
     ).add_selection(selection).properties(height=250, width=1000)
 
     st.altair_chart(total_precipt_chart)
-
-    # Section 2: Filtered Visualization
-    st.subheader(f"Visualizations for {selected_bikelane}")
-    filtered_data = bike_weather_melt[bike_weather_melt['bikelane'] == selected_bikelane]
-
-    filtered_line_chart = alt.Chart(filtered_data).mark_line().encode(
-        x="year/month:T",
-        y="mean(num_usage):Q",
-        color="bikelane:N"
-    ).properties(
-        width=1000,
-        height=250
-    )
-
-    st.altair_chart(filtered_line_chart)
-
-    # Linked scatterplots
-    scatter_base = alt.Chart(filtered_data).properties(width=400, height=400)
-
-    scatter_tp_bl = scatter_base.mark_circle().encode(
-        x="Total Precip (mm)",
-        y="num_usage",
-        color="bikelane:N",
-        tooltip=["Total Precip (mm)", "num_usage"]
-    )
-
-    scatter_mt_bl = scatter_base.mark_circle().encode(
-        x="Mean Temp (°C)",
-        y="num_usage",
-        color="bikelane:N",
-        tooltip=["Mean Temp (°C)", "num_usage"]
-    )
-
-    st.altair_chart(scatter_tp_bl | scatter_mt_bl)
