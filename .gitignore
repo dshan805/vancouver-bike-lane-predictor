@@ -1,0 +1,31 @@
+# Python compiled files
+*.pyc
+*.pyo
+__pycache__/
+
+# Virtual environment
+venv/
+env/
+.env
+
+# Logs and output
+logs/
+*.log
+
+# Processed data
+data/processed/
+
+# Jupyter Notebook checkpoints
+*.ipynb_checkpoints
+
+# IDE-specific files
+.vscode/
+.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.bak
+*.swp
