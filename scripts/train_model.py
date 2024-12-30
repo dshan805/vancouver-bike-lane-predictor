@@ -77,6 +77,12 @@ def train_and_save_models(bike_weather):
             with open(model_path, "wb") as model_file:
                 pickle.dump(gam, model_file)
 
+            # Save X_test and y_test
+            X_test_path = f"models/{lane}_X_test.pkl"
+            y_test_path = f"models/{lane}_y_test.pkl"
+            X_test.to_pickle(X_test_path)
+            y_test.to_pickle(y_test_path)
+            
             logging.info(f"Trained and saved model for lane {lane} with MSE: {mse}")
 
         return lane_results
