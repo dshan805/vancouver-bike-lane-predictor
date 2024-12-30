@@ -1,7 +1,7 @@
 streamlit==1.22.0
 pandas==2.0.1
-scikit_learn
 numpy>=1.25.0
+scikit_learn
 joblib
 plotly
 openpyxl
