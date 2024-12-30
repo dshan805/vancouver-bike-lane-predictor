@@ -181,7 +181,8 @@ with col2:
     # Additional Visualizations
     selection = alt.selection(type="multi", fields=["year/month"])
 
-    bike_usage_by_month = alt.Chart(bike_weather_melt).mark_bar().encode(
+    # Filtered Visualization for num_usage vs year/month by selected bikelane
+    filtered_bike_usage_by_month = alt.Chart(bike_weather_melt[bike_weather_melt['bikelane'] == selected_bikelane]).mark_bar().encode(
         y="num_usage",
         x="year/month",
         color=alt.condition(selection, alt.value("orange"), alt.value("lightgrey"))
@@ -192,7 +193,7 @@ with col2:
         x="bikelane"
     ).transform_filter(selection).properties(height=250, width=500)
 
-    st.altair_chart(bike_usage_by_month | usage_per_bike_lane)
+    st.altair_chart(filtered_bike_usage_by_month | usage_per_bike_lane)
 
     min_temp_chart = alt.Chart(bike_weather_melt).mark_line().encode(
         y="Min Temp (°C)",
