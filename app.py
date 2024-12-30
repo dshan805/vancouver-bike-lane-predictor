@@ -4,6 +4,9 @@ import altair as alt
 import joblib
 import sys
 import os
+import numpy as np 
+
+np.int = int
 
 # Add scripts folder to sys.path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'scripts'))

@@ -2,6 +2,9 @@ import pandas as pd
 import os
 import logging
 from datetime import datetime
+import numpy as np 
+
+np.int = int
 
 # Set up logging
 current_time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')

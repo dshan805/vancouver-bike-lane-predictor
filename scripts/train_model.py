@@ -7,6 +7,9 @@ from sklearn.metrics import mean_squared_error
 from pygam import LinearGAM, s, f
 from process_data import get_bike_weather
 import matplotlib.pyplot as plt
+import numpy as np 
+
+np.int = int
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

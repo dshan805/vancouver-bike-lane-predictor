@@ -5,6 +5,7 @@ import numpy as np
 from datetime import datetime
 import pandas as pd
 from read_data import read_csv_from_directory, read_excel_from_url
+np.int = int
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import bikedata_url, bikedata_sheet_name, weather_directory_path
